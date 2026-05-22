@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useScroll, useSpring, useTransform } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   Activity,
   ArrowRight,
@@ -26,6 +26,8 @@ import {
   Phone,
   PlayCircle,
   ShieldCheck,
+  Sparkles,
+  Star,
   Sun,
   UsersRound,
   Volume2,
@@ -35,7 +37,6 @@ import {
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const clinicName = 'Sri Rudra Speech & Hearing Clinic';
@@ -51,17 +52,12 @@ const pediatricSensoryImage = '/pediatric-sensory.jpg';
 const hearingAssessmentImage = '/hearing-assessment.jpg';
 const audiometerImage = '/audiometer-ad629.jpg';
 const immittanceImage = '/immittance-at235.jpg';
-const galleryOne = audiometryEquipment;
-const galleryTwo = otRoomImage;
-const galleryThree = pediatricSensoryImage;
 const acousticVideo = '/acoustic-speaker-background.mp4';
-const speechSessionVideo = '/speech-therapy-session.mp4';
-const speechSessionPoster = '/speech-therapy-session-poster.jpg';
 const clinicPhones = ['9849848516', '9032389666', '7032054275'];
 const clinicPhone = clinicPhones[0];
 const whatsappNumbers = clinicPhones.map((p) => `91${p}`);
 const primaryWhatsappNumber = whatsappNumbers[0];
-const email = 'sysspeechandhearing@gmail.com';
+const email = 'srirudraspeechandhearing@gmail.com';
 const whatsappMessage = encodeURIComponent('Hello, I would like to book a consultation at Sri Rudra Speech & Hearing Clinic.');
 const address =
   'Flat No. 211 & 212, HIG-207/4, Second Floor, Beside Kotak Mahindra Bank, Bhavana Heights, MVP Double Road, Visakhapatnam-530017, Andhra Pradesh.';
@@ -73,7 +69,7 @@ const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)
 const navLinks = [
   ['Home', '#home'],
   ['Services', '#services'],
-  ['Session Video', '#session-video'],
+  ['Therapy Rooms', '#session-video'],
   ['Facilities', '#facilities'],
   ['Your Visit', '#visit-flow'],
   ['Gallery', '#gallery'],
@@ -98,7 +94,11 @@ const services = [
     title: 'Hearing Aid Services',
     te: 'వినికిడి యంత్ర సేవలు',
     text: 'Trial fittings across leading brands (Phonak, Signia, Widex, Resound, Starkey), real-ear programming, custom ear-mould impressions, and lifetime follow-up tuning.',
-    image: audiometryEquipment,
+    image: hearingAssessmentImage,
+    images: [
+      { src: hearingAssessmentImage, label: 'Hearing assessment', te: 'వినికిడి పరీక్ష' },
+      { src: immittanceImage, label: 'Fitting support', te: 'వినికిడి యంత్ర అమరిక' },
+    ],
   },
   {
     icon: Baby,
@@ -262,6 +262,14 @@ const tickerItems = [
   [CalendarCheck, 'Clinic update', 'Sunday visits are available on a prior-call basis.'],
   [Clock3, 'Appointment reminder', 'Mon-Sat consultations are available from 10:00 AM to 9:00 PM.'],
 ];
+const proofTickerItems = [
+  [CheckCircle2, 'AIISH-trained clinicians'],
+  [ShieldCheck, 'Calibrated clinical equipment'],
+  [Star, 'Speech, hearing & therapy support'],
+  [CalendarCheck, 'Mon-Sat 10 AM - 9 PM'],
+  [Headphones, 'Multi-brand hearing aid fitting'],
+  [Sparkles, 'Telugu explanations available'],
+];
 const galleryItems = [
   {
     src: heroImage,
@@ -350,25 +358,6 @@ function NameReveal() {
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  // Scroll progress while the hero block travels through the viewport.
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start 85%', 'end 35%'],
-  });
-
-  // Spring-smooth the scroll signal so motion feels physical, not jittery.
-  const eased = useSpring(scrollYProgress, { stiffness: 60, damping: 22, mass: 0.9 });
-
-  // Telugu: flies up from beneath English, with a small overshoot before settling.
-  const teY = useTransform(eased, [0, 0.55, 0.9, 1], [70, 14, -4, 0]);
-  const teOpacity = useTransform(eased, [0, 0.25, 0.6, 1], [0, 0.25, 0.85, 1]);
-  const teScale = useTransform(eased, [0, 0.7, 1], [0.92, 1.02, 1]);
-  const teBlur = useTransform(eased, [0, 0.4, 0.9], ['10px', '4px', '0px']);
-  const teFilter = useTransform(teBlur, (b) => `blur(${b})`);
-
-  // Glow halo that intensifies as the Telugu name arrives.
-  const glow = useTransform(eased, [0, 0.6, 1], [0, 0.35, 0.6]);
-
   const enSize = 'clamp(2.2rem, 1.2rem + 3.8vw, 5.0rem)';
   const teSize = 'clamp(1.2rem, 0.75rem + 2.0vw, 2.8rem)';
 
@@ -379,7 +368,7 @@ function NameReveal() {
           <span className="block">Sri Rudra</span>
           <span className="block">Speech &amp; Hearing Clinic</span>
         </p>
-        <p className="mt-3 font-heading font-medium leading-[1.15] text-clinic-maroon/85" style={{ fontSize: teSize, letterSpacing: '0.005em' }}>
+        <p className="mt-3 font-heading font-medium leading-[1.15] text-clinic-maroon" style={{ fontSize: teSize, letterSpacing: '0.005em' }}>
           <span className="block">శ్రీ రుద్ర</span>
           <span className="block">స్పీచ్ &amp; హియరింగ్ క్లినిక్</span>
         </p>
@@ -388,41 +377,29 @@ function NameReveal() {
   }
 
   return (
-    <div ref={ref} className="min-w-0">
-      {/* English name — two lines, fades in with a slow letter-spacing settle */}
+    <div ref={ref} className="language-cycle min-w-0">
       <motion.p
         lang="en"
         initial={{ opacity: 0, y: 18, letterSpacing: '0.04em' }}
         animate={{ opacity: 1, y: 0, letterSpacing: '0em' }}
         transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-        className="font-heading font-semibold leading-[1.02] text-clinic-ink"
+        className="language-cycle-en font-heading font-semibold leading-[1.02]"
         style={{ fontSize: enSize }}
       >
         <span className="block">Sri Rudra</span>
         <span className="block">Speech &amp; Hearing Clinic</span>
       </motion.p>
 
-      {/* Telugu name — two lines, flies in from below as the user scrolls */}
       <div className="relative mt-3" style={{ minHeight: teSize }}>
-        <motion.span
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 -bottom-1 -top-1 rounded-full blur-2xl"
-          style={{
-            opacity: glow,
-            background:
-              'radial-gradient(60% 80% at 18% 50%, rgba(217,140,43,0.45), transparent 70%), radial-gradient(60% 80% at 82% 50%, rgba(107,31,42,0.30), transparent 70%)',
-          }}
-        />
         <motion.p
           lang="te"
-          className="relative font-heading font-medium leading-[1.18] text-clinic-maroon/85"
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1], delay: 0.75 }}
+          className="language-cycle-te relative font-heading font-medium leading-[1.18]"
           style={{
             fontSize: teSize,
             letterSpacing: '0.005em',
-            y: teY,
-            opacity: teOpacity,
-            scale: teScale,
-            filter: teFilter,
             transformOrigin: '0% 100%',
           }}
         >
@@ -491,6 +468,7 @@ function App() {
     <div className="min-h-screen bg-clinic-ivory text-clinic-ink selection:bg-clinic-saffronSoft selection:text-clinic-ink">
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
+        <ProofTicker />
         <Hero />
         <HeroPhotoReward />
         <InfoTicker />
@@ -517,7 +495,7 @@ function App() {
 
 function Header({ menuOpen, setMenuOpen }) {
   const navButtonIcons = [Activity, Headphones, PlayCircle, ClipboardCheck, UsersRound, Image, CalendarCheck, Phone];
-  const navButtonSubtitles = ['Start', 'Care paths', 'Session look', 'Clinical suite', 'Visit flow', 'Clinic views', 'Slots', 'Reach us'];
+  const navButtonSubtitles = ['Start', 'Care paths', 'OT + speech', 'Clinical suite', 'Visit flow', 'Clinic views', 'Slots', 'Reach us'];
 
   return (
     <header className="sticky top-0 z-50 border-b border-clinic-maroon/10 bg-clinic-porcelain/96 shadow-[0_22px_60px_-42px_rgba(107,31,42,0.65)] backdrop-blur-xl">
@@ -623,6 +601,32 @@ function Header({ menuOpen, setMenuOpen }) {
   );
 }
 
+function ProofTicker() {
+  const loopItems = [...proofTickerItems, ...proofTickerItems, ...proofTickerItems];
+
+  return (
+    <section className="relative z-40 overflow-hidden bg-[linear-gradient(90deg,#6B1F2A,#B86B3C,#D98C2B,#6B1F2A)] text-clinic-ivory shadow-[0_18px_44px_-34px_rgba(107,31,42,0.85)]" aria-label="Clinic assurances">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-clinic-maroon to-transparent sm:w-28" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-clinic-maroon to-transparent sm:w-28" />
+      <div className="proof-ticker-track flex w-max items-center gap-7 py-3 will-change-transform sm:gap-10">
+        {loopItems.map(([Icon, text], index) => (
+          <div key={`${text}-${index}`} className="flex min-w-max items-center gap-3 px-1 text-sm font-bold sm:text-[15px]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/16 text-clinic-saffronSoft ring-1 ring-white/22">
+              <Icon className="h-4 w-4" strokeWidth={2} />
+            </span>
+            <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.22)]">{text}</span>
+          </div>
+        ))}
+      </div>
+      <ul className="sr-only">
+        {proofTickerItems.map(([, text]) => (
+          <li key={text}>{text}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function Hero() {
   return (
     <section id="home" className="relative isolate overflow-hidden bg-clinic-ivory">
@@ -698,7 +702,7 @@ function Hero() {
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative w-[20rem] overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/10 p-6 text-clinic-ivory shadow-soft ring-1 ring-white/20 backdrop-blur-md"
+              className="relative w-[20rem] overflow-hidden rounded-[1.75rem] border border-clinic-saffron/45 bg-clinic-maroonDeep p-6 text-clinic-ivory shadow-[0_26px_70px_-28px_rgba(78,20,28,0.78)] ring-1 ring-clinic-maroon/30"
               style={{
                 textShadow: '0 1px 2px rgba(0,0,0,0.55), 0 0 18px rgba(0,0,0,0.35)',
               }}
@@ -709,7 +713,7 @@ function Hero() {
                 className="pointer-events-none absolute inset-0 rounded-[1.75rem]"
                 style={{
                   background:
-                    'linear-gradient(180deg, rgba(78,20,28,0.18) 0%, rgba(78,20,28,0.32) 100%)',
+                    'linear-gradient(135deg, rgba(107,31,42,0.98) 0%, rgba(78,20,28,0.98) 58%, rgba(62,39,21,0.96) 100%)',
                 }}
               />
               <span
@@ -901,31 +905,43 @@ function SessionVideo() {
     <section id="session-video" className="bg-clinic-ivory py-20 sm:py-28">
       <div className="section-shell grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
         <motion.div {...fadeUp}>
-          <Kicker>Speech Therapy Session</Kicker>
+          <Kicker>Therapy Rooms</Kicker>
           <h2 className="mt-5 max-w-2xl text-balance text-5xl font-semibold leading-[1.03] text-clinic-ink sm:text-6xl">
-            A calm therapy space families can picture before visiting.
+            OT, physiotherapy, and speech support in real clinic rooms.
           </h2>
           <p className="mt-6 max-w-xl text-lg leading-8 text-clinic-umber">
-            A short look at the speech therapy setting, arranged for playful practice, guided attention, and comfortable parent observation.
+            A clearer look at the therapy setup families actually use: OT and physiotherapy space, sensory-motor work, speech goals, and comfortable parent observation.
           </p>
           <div className="mt-8 flex items-center gap-3 rounded-2xl border border-clinic-sand bg-clinic-porcelain p-4 text-sm font-semibold text-clinic-rudraksha shadow-sm">
             <PlayCircle className="h-5 w-5 text-clinic-maroon" strokeWidth={1.7} />
-            Speech therapy support is paced around each child's goals.
+            Therapy support is paced around each child's goals.
           </div>
         </motion.div>
 
         <motion.div {...fadeUp} transition={{ duration: 0.75, delay: 0.08, ease }}>
-          <div className="premium-card overflow-hidden p-3">
-            <video
-              className="aspect-video w-full rounded-[1.75rem] bg-clinic-maroonDeep object-cover"
-              src={speechSessionVideo}
-              poster={speechSessionPoster}
-              controls
-              preload="metadata"
-              playsInline
-            >
-              Your browser does not support the video tag.
-            </video>
+          <div className="premium-card grid gap-3 overflow-hidden p-3 sm:grid-cols-[1.25fr_0.75fr]">
+            <figure className="relative overflow-hidden rounded-[1.75rem] bg-clinic-maroonDeep">
+              <img
+                src={otRoomImage}
+                alt="Occupational and physiotherapy room at Sri Rudra Clinic"
+                className="aspect-video h-full w-full object-cover brightness-[1.04] contrast-[1.05] saturate-[1.04]"
+                loading="lazy"
+              />
+              <figcaption className="absolute inset-x-4 bottom-4 rounded-2xl bg-clinic-maroonDeep/88 px-4 py-3 text-sm font-semibold text-clinic-ivory shadow-card ring-1 ring-clinic-saffron/35">
+                OT and physiotherapy room
+              </figcaption>
+            </figure>
+            <figure className="relative overflow-hidden rounded-[1.75rem] bg-clinic-maroonDeep">
+              <img
+                src={motorSkillsImage}
+                alt="Motor skills therapy wall at Sri Rudra Clinic"
+                className="aspect-video h-full w-full object-cover brightness-[1.04] contrast-[1.05] saturate-[1.06] sm:aspect-auto"
+                loading="lazy"
+              />
+              <figcaption className="absolute inset-x-4 bottom-4 rounded-2xl bg-clinic-maroonDeep/88 px-4 py-3 text-sm font-semibold text-clinic-ivory shadow-card ring-1 ring-clinic-saffron/35">
+                Sensory-motor practice
+              </figcaption>
+            </figure>
           </div>
         </motion.div>
       </div>
@@ -1658,4 +1674,3 @@ function FloatingWhatsapp() {
 }
 
 export default App;
-
