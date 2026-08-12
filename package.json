@@ -1,0 +1,25 @@
+{
+  "name": "sri-rudra-admin-portal",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "wrangler pages deploy dist --project-name=sri-rudra-admin",
+    "db:apply": "wrangler d1 execute sri-rudra --file=schema.sql --remote",
+    "db:seed": "wrangler d1 execute sri-rudra --file=seed.sql --remote"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.3.5",
+    "wrangler": "^3.90.0"
+  }
+}

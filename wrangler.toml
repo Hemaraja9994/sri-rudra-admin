@@ -1,0 +1,24 @@
+name = "sri-rudra-admin"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sri-rudra"
+database_id = "8cf85ace-3121-4680-8042-cabcc0369fed"
+
+[vars]
+JWT_ISSUER = "sri-rudra-admin"
+OTP_EXPIRY_MIN = "10"
+SESSION_TTL_HOURS = "12"
+# Prasad's phone for password-reset OTP delivery.
+OWNER_PHONE = "+917032054275"
+# Toggle to bypass SMS when SMS provider not configured (returns OTP in JSON — DO NOT ship to prod).
+SMS_DEBUG = "true"
+
+# Secrets to set via `wrangler pages secret put`:
+#   JWT_SECRET               — 32+ random bytes (base64)
+#   BCRYPT_PEPPER            — optional server-side pepper
+#   MSG91_AUTH_KEY           — when using MSG91 (set SMS_DEBUG=false)
+#   MSG91_TEMPLATE_ID        — MSG91 template ID
