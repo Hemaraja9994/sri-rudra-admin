@@ -17,6 +17,7 @@ import {
   Image,
   HandHeart,
   Headphones,
+  LockKeyhole,
   Mail,
   MapPin,
   Menu,
@@ -63,6 +64,8 @@ const address =
   'Flat No. 211 & 212, HIG-207/4, Second Floor, Beside Kotak Mahindra Bank, Bhavana Heights, MVP Double Road, Visakhapatnam-530017, Andhra Pradesh.';
 const addressTe =
   'ఫ్లాట్ నెం. 211 & 212, HIG-207/4, రెండవ అంతస్తు, కోటక్ మహీంద్ర బ్యాంక్ పక్కన, భావన హైట్స్, MVP డబుల్ రోడ్, విశాఖపట్నం-530017, ఆంధ్రప్రదేశ్.';
+// Staff/admin portal (separate site with the patient database).
+const adminPortalUrl = 'https://admin.srirudraspeechandhearing.com/login';
 const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
@@ -465,7 +468,7 @@ function App() {
   const [selectedSlot, setSelectedSlot] = useState('');
 
   return (
-    <div className="min-h-screen bg-clinic-ivory text-clinic-ink selection:bg-clinic-saffronSoft selection:text-clinic-ink">
+    <div className="min-h-screen overflow-x-clip bg-clinic-ivory text-clinic-ink selection:bg-clinic-saffronSoft selection:text-clinic-ink">
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
         <ProofTicker />
@@ -512,6 +515,15 @@ function Header({ menuOpen, setMenuOpen }) {
           </a>
 
           <div className="flex items-center gap-2">
+            <a
+              href={adminPortalUrl}
+              aria-label="Admin login for clinic staff"
+              title="Admin login (clinic staff only)"
+              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-clinic-sand bg-clinic-porcelain px-4 text-sm font-semibold text-clinic-rudraksha shadow-sm transition hover:bg-clinic-saffronSoft sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-clinic-saffronSoft dark:hover:bg-white/10"
+            >
+              <LockKeyhole className="h-4 w-4" strokeWidth={1.8} />
+              Admin Login
+            </a>
             <ThemeToggle />
             <a
               href={`https://wa.me/${primaryWhatsappNumber}?text=${whatsappMessage}`}
@@ -563,7 +575,7 @@ function Header({ menuOpen, setMenuOpen }) {
         </div>
       </nav>
       {menuOpen && (
-        <div className="border-t border-clinic-maroon/10 bg-clinic-maroonDeep xl:hidden">
+        <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain border-t border-clinic-maroon/10 bg-clinic-maroonDeep xl:hidden">
           <div className="section-shell grid gap-3 py-4 sm:grid-cols-2">
             {navLinks.map(([label, href], index) => {
               const Icon = navButtonIcons[index];
@@ -594,6 +606,21 @@ function Header({ menuOpen, setMenuOpen }) {
                 </a>
               );
             })}
+            <a
+              href={adminPortalUrl}
+              className="flex min-h-[4.2rem] items-center justify-between gap-4 rounded-[1.35rem] border border-clinic-ivory/14 px-4 py-3 text-clinic-ivory transition hover:border-clinic-saffron/80 sm:col-span-2"
+            >
+              <span className="flex items-center gap-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clinic-ivory/10 text-clinic-saffronSoft ring-1 ring-clinic-ivory/14">
+                  <LockKeyhole className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                <span>
+                  <span className="block text-base font-bold leading-tight">Admin Login</span>
+                  <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-clinic-ivory/48">Clinic staff only</span>
+                </span>
+              </span>
+              <ArrowRight className="h-4 w-4 text-clinic-saffronSoft" />
+            </a>
           </div>
         </div>
       )}
@@ -1650,6 +1677,10 @@ function Footer() {
             <a href="#resources" className="inline-flex items-center gap-2 text-sm text-clinic-ivory/70 hover:text-clinic-ivory">
               <ChevronRight className="h-4 w-4 text-clinic-saffron" />
               Privacy Policy
+            </a>
+            <a href={adminPortalUrl} className="inline-flex items-center gap-2 text-sm text-clinic-ivory/70 hover:text-clinic-ivory">
+              <LockKeyhole className="h-4 w-4 text-clinic-saffron" />
+              Admin login (staff)
             </a>
           </div>
         </div>
