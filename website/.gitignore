@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.wrangler/
+.claude/
+
+*.log
+*.err.log
+.env
+.env.*
+
+# Local/raw assets kept outside the deployable Vite app.
+/*.jpg
+/*.JPG
+/*.jpeg
+/*.png
+/*.mov
+/*.MOV
+/*.mp4
+/*.pdf
+/Video
+/Sri Rudra Clinic _standalone_.html
