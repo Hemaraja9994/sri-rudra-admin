@@ -2,13 +2,15 @@
 
 > **Repository layout (single repo for both sites)**
 >
-> | Folder | Site | Address | Cloudflare Pages project |
-> |---|---|---|---|
-> | `website/` | Public clinic website (no database) | srirudraspeechandhearing.com, www | `sri-rudra-website` (auto-deploys from `main`) |
-> | repo root → moving to `admin/` | Staff portal + D1 database | admin.srirudraspeechandhearing.com | `sri-rudra-portal` (manual deploy only) |
+> | Folder | Site | Address | Cloudflare Pages project | Database |
+> |---|---|---|---|---|
+> | `website/` | Public clinic website | srirudraspeechandhearing.com, www | `sri-rudra-speech-hearing-clinic` (auto-deploys from `main`) | none |
+> | repo root → moving to `admin/` | Staff portal | admin.srirudraspeechandhearing.com, sri-rudra-portal.pages.dev | `sri-rudra-portal` (manual deploy only) | D1 `sri-rudra-portal-db` |
 >
 > The staff portal source is being brought in from the clinic laptop; until then the
-> files at the repo root are an older partial copy.
+> files at the repo root are an older partial copy. Note: the root `wrangler.toml`
+> still points at the old, empty `srsc-clinic` database (id 8cf85ace…), not the live
+> `sri-rudra-portal-db`; do not run its `db:apply` / `db:seed` scripts.
 
 Cloudflare Pages + Pages Functions + D1. React SPA · JWT sessions · bcrypt · optional OTP.
 
