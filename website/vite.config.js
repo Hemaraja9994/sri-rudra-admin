@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/Clinic_Web/' : '/',
+  // Served from the root of srirudraspeechandhearing.com (Cloudflare Pages).
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {

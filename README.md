@@ -1,5 +1,15 @@
 # Sri Rudra · Staff Portal
 
+> **Repository layout (single repo for both sites)**
+>
+> | Folder | Site | Address | Cloudflare Pages project |
+> |---|---|---|---|
+> | `website/` | Public clinic website (no database) | srirudraspeechandhearing.com, www | `sri-rudra-website` (auto-deploys from `main`) |
+> | repo root → moving to `admin/` | Staff portal + D1 database | admin.srirudraspeechandhearing.com | `sri-rudra-portal` (manual deploy only) |
+>
+> The staff portal source is being brought in from the clinic laptop; until then the
+> files at the repo root are an older partial copy.
+
 Cloudflare Pages + Pages Functions + D1. React SPA · JWT sessions · bcrypt · optional OTP.
 
 ## 🔑 Default login (ships in seed.sql)
