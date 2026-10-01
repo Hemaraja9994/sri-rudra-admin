@@ -1,0 +1,8 @@
+# Cloudflare Pages settings for the PUBLIC clinic website only
+# (Pages project: sri-rudra-speech-hearing-clinic → srirudraspeechandhearing.com, www).
+#
+# Deliberately no database binding, variables or secrets: the public site never
+# touches patient data. The staff portal has its own settings and database.
+name = "sri-rudra-speech-hearing-clinic"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-07-01"
