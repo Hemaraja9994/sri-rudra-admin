@@ -3,9 +3,18 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 export default defineConfig({
-  // Served from the root of srirudraspeechandhearing.com (Cloudflare Pages).
-  base: '/',
+  base: process.env.GITHUB_ACTIONS ? '/Clinic_Web/' : '/',
   plugins: [react()],
+  build: {
+    // Two pages: the public website and the staff portal at /admin/.
+    rollupOptions: {
+      input: {
+        main: path.resolve(process.cwd(), 'index.html'),
+        admin: path.resolve(process.cwd(), 'admin/index.html'),
+        desk: path.resolve(process.cwd(), 'desk.html'),
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(process.cwd(), './src'),

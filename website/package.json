@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "db:migrate:local": "wrangler d1 migrations apply sri-rudra-clinic-web-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply sri-rudra-clinic-web-db --remote",
+    "pages:dev": "npm run build && wrangler pages dev dist",
+    "pack:desk": "vite build --config vite.desk.config.js && node scripts/pack-desk.mjs",
+    "test": "node --test src/shared/collectionCatalog.test.js src/shared/crm.test.js"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.9",
@@ -32,6 +37,7 @@
     "playwright": "^1.60.0",
     "postcss": "^8.5.6",
     "sharp": "^0.34.5",
-    "tailwindcss": "^3.4.18"
+    "tailwindcss": "^3.4.18",
+    "wrangler": "^4.153.0"
   }
 }

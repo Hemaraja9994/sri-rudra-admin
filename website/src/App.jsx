@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Activity,
@@ -17,7 +17,6 @@ import {
   Image,
   HandHeart,
   Headphones,
-  LockKeyhole,
   Mail,
   MapPin,
   Menu,
@@ -39,6 +38,21 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  defaultAddress,
+  defaultAddressTe,
+  defaultContact,
+  defaultEmail,
+  defaultFacilities,
+  defaultFaqs,
+  defaultHero,
+  defaultPhones,
+  defaultServices,
+  defaultTestimonials,
+  defaultTrust,
+  parsePhones,
+  textOr,
+} from './content-defaults.js';
 
 const clinicName = 'Sri Rudra Speech & Hearing Clinic';
 const clinicNameTe = 'శ్రీ రుద్ర స్పీచ్ & హియరింగ్ క్లినిక్';
@@ -54,21 +68,11 @@ const hearingAssessmentImage = '/hearing-assessment.jpg';
 const audiometerImage = '/audiometer-ad629.jpg';
 const immittanceImage = '/immittance-at235.jpg';
 const acousticVideo = '/acoustic-speaker-background.mp4';
-const clinicPhones = ['9849848516', '9032389666', '7032054275'];
-const clinicPhone = clinicPhones[0];
-const whatsappNumbers = clinicPhones.map((p) => `91${p}`);
-const primaryWhatsappNumber = whatsappNumbers[0];
-const email = 'srirudraspeechandhearing@gmail.com';
+const clinicPhones = defaultPhones;
+const email = defaultEmail;
 const whatsappMessage = encodeURIComponent('Hello, I would like to book a consultation at Sri Rudra Speech & Hearing Clinic.');
-const address =
-  'Flat No. 211 & 212, HIG-207/4, Second Floor, Beside Kotak Mahindra Bank, Bhavana Heights, MVP Double Road, Visakhapatnam-530017, Andhra Pradesh.';
-const addressTe =
-  'ఫ్లాట్ నెం. 211 & 212, HIG-207/4, రెండవ అంతస్తు, కోటక్ మహీంద్ర బ్యాంక్ పక్కన, భావన హైట్స్, MVP డబుల్ రోడ్, విశాఖపట్నం-530017, ఆంధ్రప్రదేశ్.';
-// Staff/admin portal (separate site with the patient database).
-const adminPortalUrl = 'https://admin.srirudraspeechandhearing.com/login';
-const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
-
+const address = defaultAddress;
+const addressTe = defaultAddressTe;
 const navLinks = [
   ['Home', '#home'],
   ['Services', '#services'],
@@ -80,93 +84,33 @@ const navLinks = [
   ['Contact', '#contact'],
 ];
 
-const services = [
-  {
-    icon: Activity,
-    title: 'Diagnostic Audiology',
-    te: 'ఆడియాలజీ పరీక్షలు',
-    text: 'Pure tone and speech audiometry, tympanometry with reflexes, OAE screening for newborns and children, and tinnitus consultation — performed in a sound-treated room with calibrated equipment.',
+const serviceIcons = [Activity, Headphones, Baby, MicVocal];
+const facilityIcons = [ClipboardCheck, Volume2, UsersRound];
+const allyIcons = [Brain, HandHeart, Dumbbell, Waves];
+const serviceMedia = {
+  'Diagnostic Audiology': {
     image: audiometerImage,
     images: [
       { src: audiometerImage, label: 'Audiometer (AD629)', te: 'ఆడియోమీటర్' },
       { src: immittanceImage, label: 'Impedance / Tympanometer (AT235)', te: 'ఇంపీడెన్స్ యంత్రం' },
     ],
   },
-  {
-    icon: Headphones,
-    title: 'Hearing Aid Services',
-    te: 'వినికిడి యంత్ర సేవలు',
-    text: 'Trial fittings across leading brands (Phonak, Signia, Widex, Resound, Starkey), real-ear programming, custom ear-mould impressions, and lifetime follow-up tuning.',
+  'Hearing Aid Services': {
     image: hearingAssessmentImage,
     images: [
       { src: hearingAssessmentImage, label: 'Hearing assessment', te: 'వినికిడి పరీక్ష' },
       { src: immittanceImage, label: 'Fitting support', te: 'వినికిడి యంత్ర అమరిక' },
     ],
   },
-  {
-    icon: Baby,
-    title: 'Pediatric Speech Therapy',
-    te: 'పిల్లల స్పీచ్ థెరపీ',
-    text: 'Help for late talkers, articulation errors, stammering, autism-related communication, and school-readiness — with structured home-practice plans for parents.',
-    image: pediatricSensoryImage,
-  },
-  {
-    icon: MicVocal,
-    title: 'Adult Rehabilitation',
-    te: 'పెద్దల పునరావాసం',
-    text: 'Post-stroke aphasia, dysarthria, voice disorders, stammering, and swallowing concerns — rehabilitation paced around daily-life communication needs.',
-    image: clinicImage,
-  },
-];
+  'Pediatric Speech Therapy': { image: pediatricSensoryImage },
+  'Adult Rehabilitation': { image: clinicImage },
+};
 
-const facilities = [
-  {
-    icon: ClipboardCheck,
-    title: 'Audiology Facilities',
-    te: 'ఆడియాలజీ సదుపాయాలు',
-    items: [
-      ['Pure Tone Audiometry (PTA)', 'ప్యూర్ టోన్ ఆడియోమెట్రీ'],
-      ['Speech Audiometry', 'స్పీచ్ ఆడియోమెట్రీ'],
-      ['Impedance / Tympanometry', 'టింపనోమెట్రీ'],
-      ['OAE Newborn Screening', 'శిశు OAE స్క్రీనింగ్'],
-      ['Tinnitus Evaluation & Counseling', 'టిన్నిటస్ మూల్యాంకనం'],
-      ['Hearing Aid Trial & Fitting', 'వినికిడి యంత్ర అమరిక'],
-    ],
-  },
-  {
-    icon: Volume2,
-    title: 'Speech-Language Pathology',
-    te: 'స్పీచ్-లాంగ్వేజ్ పాథాలజీ',
-    items: [
-      ['Speech & Language Assessment', 'మాట, భాషా మూల్యాంకనం'],
-      ['Articulation Therapy', 'ఉచ్చారణ చికిత్స'],
-      ['Stammering / Fluency Therapy', 'నత్తి (స్టామరింగ్) చికిత్స'],
-      ['Voice Therapy', 'స్వర చికిత్స'],
-      ['Autism Communication Therapy', 'ఆటిజం కమ్యూనికేషన్ థెరపీ'],
-      ['Adult Neuro Rehabilitation', 'పెద్దల న్యూరో పునరావాసం'],
-    ],
-  },
-  {
-    icon: UsersRound,
-    title: 'Allied Team Support',
-    te: 'సహాయక బృంద సేవలు',
-    items: [
-      ['Clinical Psychology', 'క్లినికల్ సైకాలజీ'],
-      ['Occupational Therapy', 'ఆక్యుపేషనల్ థెరపీ'],
-      ['Physiotherapy', 'ఫిజియోథెరపీ'],
-      ['Special Education', 'ప్రత్యేక విద్య'],
-      ['Parent Counseling & Training', 'తల్లిదండ్రుల కౌన్సిలింగ్'],
-      ['ENT & Pediatrician Referrals', 'ENT, పీడియాట్రిషియన్ రిఫరల్'],
-    ],
-  },
-];
-
-const allies = [
-  [Brain, 'Clinical Psychology'],
-  [HandHeart, 'Occupational Therapy'],
-  [Dumbbell, 'Physiotherapy'],
-  [Waves, 'Sensory-Motor Support'],
-];
+const services = defaultServices.map((service, index) => ({
+  icon: serviceIcons[index] || Activity,
+  ...service,
+  ...(serviceMedia[service.title] || { image: clinicImage }),
+}));
 
 const flowDiagnostics = [
   {
@@ -187,41 +131,63 @@ const resources = [
   ['Action For Autism', 'India-based parent support and neurodevelopmental disability resources.', 'https://www.autism-india.org/'],
 ];
 
-const testimonials = [
-  {
-    name: 'Lakshmi Priya',
-    role: 'Mother of 4-year-old, MVP Colony',
-    quote:
-      'My son was not speaking properly at age 3 and we were very worried. After six months of therapy here, he now talks in full sentences and even tells stories at school. The therapist explained everything in Telugu and showed us exactly what to practice at home.',
-  },
-  {
-    name: 'Ramesh K.',
-    role: 'Retired teacher, age 68',
-    quote:
-      "I had been avoiding family gatherings because I couldn't follow conversations. The audiologist took time to test both ears properly, let me try three different hearing aids over two weeks, and adjusted them until they felt right. I attended my grand-daughter's wedding without missing a word.",
-  },
-  {
-    name: 'Sailaja Devi',
-    role: 'Parent of child with autism',
-    quote:
-      'We had visited two other places before coming here. What was different was the patience — the sessions were never rushed, and the therapist worked with my daughter at her pace. Her eye contact and single-word requests have clearly improved.',
-  },
-  {
-    name: 'Naveen Varma',
-    role: 'Stroke recovery, age 54',
-    quote:
-      'After my stroke I had trouble speaking clearly. The speech therapy here brought back my confidence step by step. I am now back at my shop and able to talk with customers normally.',
-  },
-];
+function serviceCopy(service, overrides) {
+  const raw = overrides?.[service.title];
+  if (typeof raw === 'string') return { ...service, text: textOr(raw, service.text) };
+  if (raw && typeof raw === 'object') {
+    return { ...service, text: textOr(raw.text, service.text), te: textOr(raw.te, service.te) };
+  }
+  return service;
+}
 
-const faqs = [
-  ['Do I need an appointment?', 'Yes, an appointment is preferred so we can keep your 45-minute slot fully reserved. Use the booking form, WhatsApp, or call 9849848516 / 9032389666 / 7032054275. Walk-ins are accepted if a slot is open.'],
-  ['What does a hearing test cost and how long does it take?', 'A full audiology workup (pure-tone audiometry, speech audiometry, and tympanometry) takes about 45 minutes. Charges are explained on the call before you visit so there are no surprises.'],
-  ['My child is not speaking — at what age should I bring him/her?', 'If your child is not babbling by 12 months, not using single words by 18 months, or not joining two words by 24 months, please come for an evaluation. Earlier is always better — therapy is most effective in the 0–5 age window.'],
-  ['Which hearing aid brands do you fit?', 'We fit and service all major brands — Phonak, Signia (Siemens), Widex, ReSound, Starkey and Oticon — across price points from basic to premium rechargeable models. A two-week trial is offered before purchase.'],
-  ['Do you handle insurance or government schemes?', 'We provide proper invoices and audiology reports that you can submit for reimbursement (ESI, CGHS, private insurance, ADIP scheme for hearing aids). Please ask at the time of booking.'],
-  ['Is the clinic accessible for elderly patients?', 'Yes. The clinic is on the second floor of Bhavana Heights with lift access. There is no step at the entrance and the consultation rooms are wheelchair-friendly.'],
-];
+function facilityGroups(saved) {
+  if (!Array.isArray(saved) || !saved.some((group) => textOr(group?.title, '') || (group?.items || []).some((item) => textOr(item?.en, '')))) {
+    return defaultFacilities.map((group, index) => ({ ...group, icon: facilityIcons[index] || CheckCircle2 }));
+  }
+  return saved
+    .map((group, index) => ({
+      icon: facilityIcons[index] || CheckCircle2,
+      title: textOr(group?.title, ''),
+      te: textOr(group?.te, ''),
+      items: (Array.isArray(group?.items) ? group.items : [])
+        .map((item) => ({ en: textOr(item?.en, ''), te: textOr(item?.te, '') }))
+        .filter((item) => item.en),
+    }))
+    .filter((group) => group.title && group.items.length);
+}
+
+function filledPeople(saved, fallback) {
+  if (!Array.isArray(saved)) return fallback;
+  const rows = saved.filter((row) => textOr(row?.quote, '') || textOr(row?.name, ''));
+  return rows.length ? rows.map((row) => ({ name: textOr(row.name, 'Family'), role: textOr(row.role, ''), quote: textOr(row.quote, '') })).filter((row) => row.quote) : fallback;
+}
+
+function filledFaqs(saved) {
+  if (!Array.isArray(saved)) return defaultFaqs;
+  const rows = saved
+    .map((row) => ({ question: textOr(row?.question, ''), answer: textOr(row?.answer, '') }))
+    .filter((row) => row.question && row.answer);
+  return rows.length ? rows : defaultFaqs;
+}
+
+function clinicContact(content) {
+  const saved = content?.contact || {};
+  const phones = parsePhones(saved.phones);
+  const list = phones.length ? phones : clinicPhones;
+  const resolvedAddress = textOr(saved.address, address);
+  return {
+    phones: list,
+    phone: list[0],
+    whatsapp: `91${list[0]}`,
+    email: textOr(saved.email, email),
+    address: resolvedAddress,
+    addressTe: textOr(saved.address_te, addressTe),
+    title: textOr(saved.title, defaultContact.title),
+    description: textOr(saved.description, defaultContact.description),
+    map: `https://www.google.com/maps?q=${encodeURIComponent(resolvedAddress)}&output=embed`,
+    directions: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedAddress)}`,
+  };
+}
 
 const slotDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const slotTimes = {
@@ -463,12 +429,53 @@ function ThemeToggle() {
   );
 }
 
+// Content edited by staff in the admin portal (announcement, timings, service text).
+// If the server is unreachable the built-in text below is used.
+const SiteContentContext = createContext({});
+const useSiteContent = () => useContext(SiteContentContext);
+
+function useRemoteSiteContent() {
+  const [content, setContent] = useState({});
+  useEffect(() => {
+    fetch('/api/public/content')
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => setContent(data && typeof data === 'object' ? data : {}))
+      .catch(() => {});
+  }, []);
+  return content;
+}
+
+function hoursLine(content) {
+  const h = content.hours || {};
+  return `Monday to Saturday: ${h.weekdays || '10:00 AM – 9:00 PM'}. Sunday: ${h.sunday || 'Prior-call basis only'}.`;
+}
+
+function toISODate(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function AnnouncementBar() {
+  const { announcement } = useSiteContent();
+  if (!announcement?.active || !(announcement.text || announcement.text_te)) return null;
+  return (
+    <div role="status" className="bg-clinic-saffron px-4 py-2 text-center text-sm font-semibold text-clinic-ink">
+      {announcement.text}
+      {announcement.text && announcement.text_te && <span className="mx-2 opacity-60">•</span>}
+      {announcement.text_te}
+    </div>
+  );
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState('');
+  const siteContent = useRemoteSiteContent();
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-clinic-ivory text-clinic-ink selection:bg-clinic-saffronSoft selection:text-clinic-ink">
+    <SiteContentContext.Provider value={siteContent}>
+    <div className="min-h-screen bg-clinic-ivory text-clinic-ink selection:bg-clinic-saffronSoft selection:text-clinic-ink">
+      <AnnouncementBar />
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
         <ProofTicker />
@@ -493,10 +500,12 @@ function App() {
       <Footer />
       <FloatingWhatsapp />
     </div>
+    </SiteContentContext.Provider>
   );
 }
 
 function Header({ menuOpen, setMenuOpen }) {
+  const contact = clinicContact(useSiteContent());
   const navButtonIcons = [Activity, Headphones, PlayCircle, ClipboardCheck, UsersRound, Image, CalendarCheck, Phone];
   const navButtonSubtitles = ['Start', 'Care paths', 'OT + speech', 'Clinical suite', 'Visit flow', 'Clinic views', 'Slots', 'Reach us'];
 
@@ -515,18 +524,9 @@ function Header({ menuOpen, setMenuOpen }) {
           </a>
 
           <div className="flex items-center gap-2">
-            <a
-              href={adminPortalUrl}
-              aria-label="Admin login for clinic staff"
-              title="Admin login (clinic staff only)"
-              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-clinic-sand bg-clinic-porcelain px-4 text-sm font-semibold text-clinic-rudraksha shadow-sm transition hover:bg-clinic-saffronSoft sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-clinic-saffronSoft dark:hover:bg-white/10"
-            >
-              <LockKeyhole className="h-4 w-4" strokeWidth={1.8} />
-              Admin Login
-            </a>
             <ThemeToggle />
             <a
-              href={`https://wa.me/${primaryWhatsappNumber}?text=${whatsappMessage}`}
+              href={`https://wa.me/${contact.whatsapp}?text=${whatsappMessage}`}
               target="_blank"
               rel="noreferrer"
               className="hidden min-h-11 items-center gap-2 rounded-full bg-clinic-maroon px-5 text-sm font-semibold text-clinic-ivory shadow-card transition duration-300 hover:bg-clinic-maroonDeep xl:inline-flex"
@@ -575,7 +575,7 @@ function Header({ menuOpen, setMenuOpen }) {
         </div>
       </nav>
       {menuOpen && (
-        <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain border-t border-clinic-maroon/10 bg-clinic-maroonDeep xl:hidden">
+        <div className="border-t border-clinic-maroon/10 bg-clinic-maroonDeep xl:hidden">
           <div className="section-shell grid gap-3 py-4 sm:grid-cols-2">
             {navLinks.map(([label, href], index) => {
               const Icon = navButtonIcons[index];
@@ -606,21 +606,6 @@ function Header({ menuOpen, setMenuOpen }) {
                 </a>
               );
             })}
-            <a
-              href={adminPortalUrl}
-              className="flex min-h-[4.2rem] items-center justify-between gap-4 rounded-[1.35rem] border border-clinic-ivory/14 px-4 py-3 text-clinic-ivory transition hover:border-clinic-saffron/80 sm:col-span-2"
-            >
-              <span className="flex items-center gap-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clinic-ivory/10 text-clinic-saffronSoft ring-1 ring-clinic-ivory/14">
-                  <LockKeyhole className="h-4 w-4" strokeWidth={1.8} />
-                </span>
-                <span>
-                  <span className="block text-base font-bold leading-tight">Admin Login</span>
-                  <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-clinic-ivory/48">Clinic staff only</span>
-                </span>
-              </span>
-              <ArrowRight className="h-4 w-4 text-clinic-saffronSoft" />
-            </a>
           </div>
         </div>
       )}
@@ -655,6 +640,10 @@ function ProofTicker() {
 }
 
 function Hero() {
+  const { hero = {}, hours = {} } = useSiteContent();
+  const headline = textOr(hero.headline, defaultHero.headline);
+  const headlineTe = textOr(hero.headline_te, defaultHero.headline_te);
+  const body = textOr(hero.body, defaultHero.body);
   return (
     <section id="home" className="relative isolate overflow-hidden bg-clinic-ivory">
       <div className="absolute inset-y-0 right-0 -z-10 hidden w-[58%] overflow-hidden lg:block" aria-hidden="true">
@@ -696,7 +685,7 @@ function Hero() {
               transition={{ duration: 0.75, delay: 0.15, ease }}
               className="max-w-3xl text-balance text-2xl font-semibold leading-snug text-clinic-umber sm:text-3xl lg:text-[2.1rem]"
             >
-              Hearing and speech care for all age groups, under one roof.
+              {headline}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 14 }}
@@ -705,7 +694,7 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.25, ease }}
               className="mt-2 max-w-3xl text-sm font-medium text-clinic-clay sm:text-base"
             >
-              అన్ని వయసుల వారికి వినికిడి మరియు మాట సంరక్షణ — ఒకే చోట.
+              {headlineTe}
             </motion.p>
             <motion.p
               initial={{ opacity: 0, y: 14 }}
@@ -714,7 +703,7 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.35, ease }}
               className="mt-6 max-w-3xl text-lg leading-8 text-clinic-umber sm:text-xl"
             >
-              Full-range hearing tests, multi-brand hearing aid fitting, speech and language therapy for children and adults, and on-call allied team support — delivered by AIISH-trained clinicians at MVP Double Road, Visakhapatnam.
+              {body}
             </motion.p>
 
           </div>
@@ -753,13 +742,13 @@ function Hero() {
                 </span>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-clinic-saffronSoft">Visit window</p>
-                  <p className="mt-0.5 font-heading text-2xl font-semibold text-white">10 AM – 9 PM</p>
+                  <p className="mt-0.5 font-heading text-2xl font-semibold text-white">{textOr(hours.weekdays, '10 AM – 9 PM')}</p>
                 </div>
               </div>
               <div className="relative grid gap-3 py-5">
                 {[
                   ['Mon–Sat', 'Consultations by appointment'],
-                  ['Sunday', 'Available on prior-call basis'],
+                  ['Sunday', textOr(hours.sunday, 'Available on prior-call basis')],
                   ['Location', 'MVP Double Road, Visakhapatnam'],
                 ].map(([label, value]) => (
                   <div key={label} className="grid grid-cols-[4.5rem_1fr] gap-3">
@@ -883,10 +872,13 @@ function CareFlow() {
 }
 
 function Services() {
+  const overrides = useSiteContent().services || {};
+  const cards = services.map((service) => serviceCopy(service, overrides));
   return (
     <Section id="services" eyebrow="Services • సేవలు" title="Four care paths under one roof." description="Hearing testing, hearing aid services, paediatric speech therapy, and adult rehabilitation — each delivered by qualified audiologists and speech-language pathologists.">
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {services.map(({ icon: Icon, title, te, text, image, images }) => (
+        {cards.map(({ icon: Icon, title, te, text, image, images }) => {
+          return (
           <motion.div key={title} {...fadeUp}>
             <Card className="premium-card group relative h-full overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-clinic-saffron/60 hover:shadow-soft">
               {images && images.length > 1 ? (
@@ -921,7 +913,8 @@ function Services() {
               <CardContent className="relative px-7 pb-7 text-[15px] leading-7 text-clinic-umber transition duration-300 group-hover:text-clinic-ivory/82">{text}</CardContent>
             </Card>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );
@@ -977,6 +970,7 @@ function SessionVideo() {
 }
 
 function Facilities() {
+  const groups = facilityGroups(useSiteContent().facilities);
   return (
     <section id="facilities" className="relative overflow-hidden bg-clinic-maroon py-20 text-clinic-ivory sm:py-28">
       <video
@@ -1004,7 +998,7 @@ function Facilities() {
         </motion.div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {facilities.map(({ icon: Icon, title, te, items }) => (
+          {groups.map(({ icon: Icon, title, te, items }) => (
             <motion.div key={title} {...fadeUp}>
               <Card className="h-full rounded-3xl border border-clinic-ivory/35 !bg-clinic-porcelain text-clinic-ink shadow-card">
                 <CardHeader className="p-8">
@@ -1015,7 +1009,7 @@ function Facilities() {
                   <p className="mt-1 text-sm font-medium text-clinic-clay">{te}</p>
                 </CardHeader>
                 <CardContent className="grid gap-2 px-8 pb-8">
-                  {items.map(([en, te]) => (
+                  {items.map(({ en, te }) => (
                     <div key={en} className="flex items-start gap-3 rounded-2xl bg-clinic-ivory px-4 py-3 text-sm font-medium text-clinic-umber">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-clinic-saffron" strokeWidth={1.8} />
                       <span>
@@ -1035,6 +1029,10 @@ function Facilities() {
 }
 
 function Team() {
+  const saved = useSiteContent().trust || {};
+  const labels = Array.isArray(saved.allies) && saved.allies.some((label) => textOr(label, ''))
+    ? saved.allies.map((label) => textOr(label, '')).filter(Boolean)
+    : defaultTrust.allies;
   return (
     <section className="bg-clinic-ivory py-20 sm:py-28">
       <div className="section-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
@@ -1044,20 +1042,23 @@ function Team() {
         <motion.div {...fadeUp}>
           <Kicker>Team approach</Kicker>
           <h2 className="mt-5 max-w-2xl text-balance text-5xl font-semibold leading-[1.02] text-clinic-ink sm:text-6xl">
-            Support that widens when development, behavior, or movement overlap.
+            {textOr(saved.title, defaultTrust.title)}
           </h2>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-clinic-umber">
-            Clinical psychology, occupational therapy, and physiotherapy support can be coordinated on an appointment basis when clinically appropriate.
+            {textOr(saved.text, defaultTrust.text)}
           </p>
           <div className="mt-9 grid gap-3 sm:grid-cols-2">
-            {allies.map(([Icon, label]) => (
+            {labels.map((label, index) => {
+              const Icon = allyIcons[index] || UsersRound;
+              return (
               <div key={label} className="flex items-center gap-3 rounded-2xl border border-clinic-sand bg-clinic-porcelain p-4 shadow-sm">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-clinic-saffronSoft text-clinic-maroon">
                   <Icon className="h-5 w-5" strokeWidth={1.6} />
                 </span>
                 <span className="font-semibold text-clinic-rudraksha">{label}</span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>
@@ -1332,6 +1333,7 @@ function MonthCalendar({ selectedDate, onSelect }) {
 }
 
 function Booking({ selectedSlot, setSelectedSlot }) {
+  const contact = clinicContact(useSiteContent());
   const [selectedDate, setSelectedDate] = useState(() => {
     const t = startOfDay(new Date());
     return t.getDay() === 0 ? new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1) : t;
@@ -1343,8 +1345,10 @@ function Booking({ selectedSlot, setSelectedSlot }) {
     phone: '',
     service: 'Diagnostic Audiology',
     concern: '',
+    website: '', // hidden anti-spam field; real visitors leave it empty
   });
   const [errors, setErrors] = useState({});
+  const siteContent = useSiteContent();
 
   // Keep the human-readable slot label in sync with date + time.
   useEffect(() => {
@@ -1397,11 +1401,27 @@ function Booking({ selectedSlot, setSelectedSlot }) {
     ]
       .filter(Boolean)
       .join('\n');
-    const url = `https://wa.me/${primaryWhatsappNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+    // Also save the request to the staff portal. WhatsApp stays the main channel, so failures are ignored.
+    fetch('/api/public/appointments', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        name: form.name,
+        age: form.age,
+        phone: form.phone,
+        service: form.service,
+        concern: form.concern,
+        date: toISODate(selectedDate),
+        time: isSunday ? null : selectedTime,
+        website: form.website,
+      }),
+    }).catch(() => {});
   };
 
-  const callBackHref = `tel:${clinicPhone}`;
+  const callBackHref = `tel:${contact.phone}`;
 
   const inputClass =
     'min-h-12 w-full rounded-2xl border border-clinic-sand bg-clinic-ivory px-4 text-[15px] text-clinic-ink shadow-inner placeholder:text-clinic-clay focus:border-clinic-maroon focus:outline-none focus:ring-2 focus:ring-clinic-saffron/40';
@@ -1423,9 +1443,10 @@ function Booking({ selectedSlot, setSelectedSlot }) {
           <p className="mt-2 text-sm text-clinic-saffronSoft/80">
             {isSunday ? 'Sunday — final time on call' : `Duration: ${slotDuration}`}
           </p>
-          <p className="mt-4 leading-7 text-clinic-ivory/72">Monday to Saturday: 10:00 AM – 9:00 PM. Sunday: prior-call basis only.</p>
+          <p className="mt-4 leading-7 text-clinic-ivory/72">{hoursLine(siteContent)}</p>
 
           <form onSubmit={handleSubmit} className="mt-8 grid gap-4">
+            <input type="text" name="website" value={form.website} onChange={updateField('website')} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
             <div>
               <label className="text-xs font-bold uppercase tracking-[0.18em] text-clinic-saffronSoft">Patient name *</label>
               <input className={`mt-2 ${inputClass}`} type="text" value={form.name} onChange={updateField('name')} placeholder="Full name" />
@@ -1461,7 +1482,7 @@ function Booking({ selectedSlot, setSelectedSlot }) {
               Send booking on WhatsApp
             </button>
             <a href={callBackHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-clinic-ivory/30 px-6 font-semibold text-clinic-ivory transition hover:bg-clinic-ivory/10">
-              <Phone className="h-5 w-5" /> Or call {clinicPhone}
+              <Phone className="h-5 w-5" /> Or call {contact.phone}
             </a>
           </form>
         </Card>
@@ -1480,7 +1501,7 @@ function Booking({ selectedSlot, setSelectedSlot }) {
               <div className="rounded-2xl bg-clinic-cream px-4 py-4 text-sm leading-6 text-clinic-umber">
                 <p className="font-semibold text-clinic-maroon">Sunday — prior-call basis</p>
                 <p className="mt-1">
-                  Sunday consultations are arranged after a call to <span className="font-semibold">{clinicPhone}</span>. Submit this form and we'll confirm a time with you.
+                  Sunday consultations are arranged after a call to <span className="font-semibold">{contact.phone}</span>. Submit this form and we'll confirm a time with you.
                 </p>
               </div>
             ) : (
@@ -1539,10 +1560,11 @@ function Resources() {
 }
 
 function Testimonials() {
+  const quotes = filledPeople(useSiteContent().testimonials, defaultTestimonials);
   return (
     <Section eyebrow="Testimonials • సాక్ష్యాలు" title="In the words of the families we have cared for." description="Real reflections shared by parents and patients after their journey with us.">
       <div className="grid gap-5 md:grid-cols-2">
-        {testimonials.map(({ name, role, quote }) => (
+        {quotes.map(({ name, role, quote }) => (
           <Card key={name} className="premium-card p-8">
             <div className="flex items-center gap-3">
               <Avatar>
@@ -1562,10 +1584,11 @@ function Testimonials() {
 }
 
 function FAQ() {
+  const faqs = filledFaqs(useSiteContent().faq);
   return (
     <Section id="faq" muted eyebrow="FAQ • తరచుగా అడిగే ప్రశ్నలు" title="Questions families ask before coming in." description="Practical answers about appointments, costs, age cut-offs, hearing aid brands and insurance — so you arrive prepared.">
       <Accordion type="single" collapsible className="mx-auto max-w-3xl rounded-3xl border border-clinic-sand bg-clinic-porcelain px-6 shadow-card">
-        {faqs.map(([question, answer], index) => (
+        {faqs.map(({ question, answer }, index) => (
           <AccordionItem key={question} value={`item-${index}`} className="border-clinic-sand">
             <AccordionTrigger className="py-6 text-left font-heading text-2xl font-semibold text-clinic-ink hover:no-underline">{question}</AccordionTrigger>
             <AccordionContent className="pb-6 text-[15px] leading-7 text-clinic-umber">{answer}</AccordionContent>
@@ -1577,16 +1600,18 @@ function FAQ() {
 }
 
 function Contact() {
+  const siteContent = useSiteContent();
+  const contact = clinicContact(siteContent);
   const contactRows = [
-    [Phone, `Clinic calls: ${clinicPhones.join(' / ')}`],
-    [MessageCircle, `WhatsApp: +${whatsappNumbers.join(' / +')}`],
-    [Mail, email],
-    [MapPin, `${address}\n${addressTe}`],
-    [Clock3, 'Monday to Saturday: 10:00 AM – 9:00 PM. Sunday: Prior-call basis only.'],
+    [Phone, `Clinic calls: ${contact.phones.join(' / ')}`],
+    [MessageCircle, `WhatsApp: +91${contact.phones.join(' / +91')}`],
+    [Mail, contact.email],
+    [MapPin, `${contact.address}\n${contact.addressTe}`],
+    [Clock3, hoursLine(siteContent)],
   ];
 
   return (
-    <Section id="contact" eyebrow="Contact • సంప్రదించండి" title="Visit us at MVP Double Road, Visakhapatnam." description="Call any of our numbers, message on WhatsApp, or use the map for directions. We are easy to find — second floor, beside Kotak Mahindra Bank.">
+    <Section id="contact" eyebrow="Contact • సంప్రదించండి" title={contact.title} description={contact.description}>
       <div className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr]">
         <Card className="premium-card p-8">
           <div className="grid gap-6">
@@ -1600,14 +1625,14 @@ function Contact() {
             ))}
           </div>
           <div className="mt-8 flex flex-col flex-wrap gap-3 sm:flex-row">
-            <a href={`tel:${clinicPhone}`} className="btn-primary"><Phone className="h-5 w-5" />Call Clinic</a>
-            <a href={`https://wa.me/${primaryWhatsappNumber}?text=${whatsappMessage}`} target="_blank" rel="noreferrer" className="btn-secondary"><MessageCircle className="h-5 w-5 text-clinic-saffron" />WhatsApp</a>
-            <a href={`mailto:${email}`} className="btn-secondary"><Mail className="h-5 w-5 text-clinic-saffron" />Email</a>
-            <a href={directionsUrl} target="_blank" rel="noreferrer" className="btn-secondary"><MapPin className="h-5 w-5 text-clinic-saffron" />Directions</a>
+            <a href={`tel:${contact.phone}`} className="btn-primary"><Phone className="h-5 w-5" />Call Clinic</a>
+            <a href={`https://wa.me/${contact.whatsapp}?text=${whatsappMessage}`} target="_blank" rel="noreferrer" className="btn-secondary"><MessageCircle className="h-5 w-5 text-clinic-saffron" />WhatsApp</a>
+            <a href={`mailto:${contact.email}`} className="btn-secondary"><Mail className="h-5 w-5 text-clinic-saffron" />Email</a>
+            <a href={contact.directions} target="_blank" rel="noreferrer" className="btn-secondary"><MapPin className="h-5 w-5 text-clinic-saffron" />Directions</a>
           </div>
         </Card>
         <div className="min-h-[420px] overflow-hidden rounded-3xl border border-clinic-sand bg-clinic-parchment shadow-card">
-          <iframe title="Sri Rudra Speech & Hearing Clinic map" src={mapEmbedUrl} className="h-full min-h-[420px] w-full sepia-[0.12] saturate-[0.86]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          <iframe title="Sri Rudra Speech & Hearing Clinic map" src={contact.map} className="h-full min-h-[420px] w-full sepia-[0.12] saturate-[0.86]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
         </div>
       </div>
     </Section>
@@ -1645,6 +1670,9 @@ function Kicker({ children }) {
 }
 
 function Footer() {
+  const content = useSiteContent();
+  const { hours = {} } = content;
+  const contact = clinicContact(content);
   return (
     <footer className="bg-clinic-maroonDeep py-14 text-clinic-ivory">
       <div className="section-shell grid gap-10 md:grid-cols-[1fr_auto]">
@@ -1656,13 +1684,13 @@ function Footer() {
               <p className="text-sm text-clinic-ivory/55">{clinicNameTe}</p>
             </div>
           </div>
-          <p className="mt-6 max-w-xl text-sm leading-7 text-clinic-ivory/65">{address}</p>
-          <p className="mt-3 max-w-xl text-sm leading-7 text-clinic-ivory/55">{addressTe}</p>
+          <p className="mt-6 max-w-xl text-sm leading-7 text-clinic-ivory/65">{contact.address}</p>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-clinic-ivory/55">{contact.addressTe}</p>
           <div className="mt-5 grid gap-2 text-sm text-clinic-ivory/70">
-            <p><span className="font-semibold text-clinic-saffronSoft">Call / WhatsApp:</span> {clinicPhones.join(' • ')}</p>
-            <p><span className="font-semibold text-clinic-saffronSoft">Email:</span> {email}</p>
-            <p><span className="font-semibold text-clinic-saffronSoft">Hours:</span> Mon–Sat 10:00 AM – 9:00 PM • Sunday on prior call</p>
-            <p className="text-clinic-ivory/55">సోమ – శని: ఉ. 10 నుండి రా. 9 వరకు • ఆదివారం ముందస్తు కాల్‌తో</p>
+            <p><span className="font-semibold text-clinic-saffronSoft">Call / WhatsApp:</span> {contact.phones.join(' • ')}</p>
+            <p><span className="font-semibold text-clinic-saffronSoft">Email:</span> {contact.email}</p>
+            <p><span className="font-semibold text-clinic-saffronSoft">Hours:</span> Mon–Sat {hours.weekdays || '10:00 AM – 9:00 PM'} • Sunday {hours.sunday || 'on prior call'}</p>
+            <p className="text-clinic-ivory/55">{hours.te || 'సోమ – శని: ఉ. 10 నుండి రా. 9 వరకు • ఆదివారం ముందస్తు కాల్‌తో'}</p>
           </div>
         </div>
         <div>
@@ -1678,9 +1706,13 @@ function Footer() {
               <ChevronRight className="h-4 w-4 text-clinic-saffron" />
               Privacy Policy
             </a>
-            <a href={adminPortalUrl} className="inline-flex items-center gap-2 text-sm text-clinic-ivory/70 hover:text-clinic-ivory">
-              <LockKeyhole className="h-4 w-4 text-clinic-saffron" />
-              Admin login (staff)
+            <a href="/admin/" rel="nofollow" className="inline-flex items-center gap-2 text-sm text-clinic-ivory/70 hover:text-clinic-ivory">
+              <ChevronRight className="h-4 w-4 text-clinic-saffron" />
+              Staff login
+            </a>
+            <a href="/desk.html" className="inline-flex items-center gap-2 text-sm text-clinic-ivory/70 hover:text-clinic-ivory">
+              <ChevronRight className="h-4 w-4 text-clinic-saffron" />
+              Offline clinic desk
             </a>
           </div>
         </div>
@@ -1691,9 +1723,10 @@ function Footer() {
 }
 
 function FloatingWhatsapp() {
+  const contact = clinicContact(useSiteContent());
   return (
     <a
-      href={`https://wa.me/${primaryWhatsappNumber}?text=${whatsappMessage}`}
+      href={`https://wa.me/${contact.whatsapp}?text=${whatsappMessage}`}
       target="_blank"
       rel="noreferrer"
       aria-label="Chat with Sri Rudra Clinic on WhatsApp"

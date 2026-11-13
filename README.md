@@ -4,13 +4,19 @@
 >
 > | Folder | Site | Address | Cloudflare Pages project | Database |
 > |---|---|---|---|---|
-> | `website/` | Public clinic website | srirudraspeechandhearing.com, www | `sri-rudra-speech-hearing-clinic` (auto-deploys from `main`) | none |
-> | repo root → moving to `admin/` | Staff portal | admin.srirudraspeechandhearing.com, sri-rudra-portal.pages.dev | `sri-rudra-portal` (manual deploy only) | D1 `sri-rudra-portal-db` |
+> | `website/` on branch **`live`** | Public clinic website + its own staff area (`/admin/`: CRM, collections, website content) | srirudraspeechandhearing.com, www | `sri-rudra-speech-hearing-clinic` (auto-deploys from branch `live`, root directory `website`) | D1 `sri-rudra-clinic-web-db`; website bookings are also inserted into `sri-rudra-portal-db` |
+> | repo root | Daily staff portal | admin.srirudraspeechandhearing.com, sri-rudra-portal.pages.dev | `sri-rudra-portal` (**connected to this repo, auto-deploys from `main`**) | D1 `sri-rudra-portal-db` |
 >
-> The staff portal source is being brought in from the clinic laptop; until then the
-> files at the repo root are an older partial copy. Note: the root `wrangler.toml`
-> still points at the old, empty `srsc-clinic` database (id 8cf85ace…), not the live
-> `sri-rudra-portal-db`; do not run its `db:apply` / `db:seed` scripts.
+> **Do not push to `main`.** A push to `main` starts a production build of the daily staff
+> portal from the files at the repo root, which are an older partial copy (the last such
+> build, 0d318e7, failed, so the portal still runs an older deployment).
+>
+> The source of `website/` is github.com/Hemaraja9994/Clinic_Web, branch `live`. To publish a
+> new version, copy that branch into `website/` on this repo's `live` branch (keep
+> `website/.nvmrc`) and push `live`. Database changes: `website/docs/ADMIN_SETUP.md`.
+>
+> Note: the root `wrangler.toml` still points at the old, empty `srsc-clinic` database
+> (id 8cf85ace…), not the live `sri-rudra-portal-db`; do not run its `db:apply` / `db:seed` scripts.
 
 Cloudflare Pages + Pages Functions + D1. React SPA · JWT sessions · bcrypt · optional OTP.
 
